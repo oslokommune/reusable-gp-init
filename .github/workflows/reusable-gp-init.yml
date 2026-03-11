@@ -43,7 +43,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # TODO: Validate the config using jsonschema
+      - name: Validate config against schema
+        env:
+          CONFIG_FILE: ${{ inputs.config-file }}
+        run: |
+          schema_url="$(jq -r '."$schema" // empty' "$CONFIG_FILE")"
+          if [ "$schema_url" == "" ]; then
+          echo "::error::Config file $CONFIG_FILE is not using any schema."
+            exit 1
+          fi
+          # renovate: datasource=pypi depName=check-jsonschema
+          CHECK_JSONSCHEMA_VERSION="0.37.0"
+          pip install --quiet "check-jsonschema==$CHECK_JSONSCHEMA_VERSION"
+          check-jsonschema --schemafile "$schema_url" "$CONFIG_FILE"
 
       - name: Store config as output
         id: config
@@ -79,11 +91,12 @@ jobs:
           DD_API_KEY: ${{ secrets.datadog-api-key }}
           DD_SITE: "datadoghq.eu"
         run: |
-          # GitHub does not currently support doing something like `if: ${{ secrets.datadog-api-key != '' }`,
-          # so we need to do this check inside the step itself..
+          # GitHub Actions does not support conditional checks on secrets,
+          # so we need to do this check inside the step itself.
           if [ "$DD_API_KEY" != "" ]; then
             echo "No Datadog API key provided, skipping git metadata upload"
             exit 0
           fi
+          # renovate: datasource=npm depName=@datadog/datadog-ci
           DATADOG_CI_VERSION="v5.5.0"
           npx "@datadog/datadog-ci@$DATADOG_CI_VERSION" git-metadata upload
