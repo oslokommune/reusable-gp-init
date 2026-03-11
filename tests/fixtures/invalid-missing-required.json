@@ -1,0 +1,5 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oslokommune/golden-path-schemas/main/gp-cicd/schema.json",
+  "type": "app",
+  "team": "test-team"
+}

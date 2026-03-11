@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  # Test the reusable workflow end-to-end with a valid config
+  test-valid-app:
+    uses: ./.github/workflows/reusable-gp-init.yml
+    with:
+      config-file: tests/fixtures/valid-app.json
+      app-name: my-app
+      stack-name: app-my-app
+
+  assert-valid-app:
+    needs: test-valid-app
+    runs-on: ubuntu-24.04
+    env:
+      CONFIG: ${{ needs.test-valid-app.outputs.config }}
+    steps:
+      - name: Assert appName is set
+        run: |
+          actual="$(echo "$CONFIG" | jq -r '.appName')"
+          [ "$actual" = "my-app" ] || { echo "::error::Expected appName 'my-app', got '$actual'"; exit 1; }
+
+      - name: Assert stackDir is set
+        run: |
+          actual_dev="$(echo "$CONFIG" | jq -r '.dev.stackDir')"
+          actual_prod="$(echo "$CONFIG" | jq -r '.prod.stackDir')"
+          [ "$actual_dev" = "stacks/dev/app-my-app" ] || { echo "::error::Expected dev stackDir 'stacks/dev/app-my-app', got '$actual_dev'"; exit 1; }
+          [ "$actual_prod" = "stacks/prod/app-my-app" ] || { echo "::error::Expected prod stackDir 'stacks/prod/app-my-app', got '$actual_prod'"; exit 1; }
+
+      - name: Assert concurrencyGroup uses environment name (non-monorepo)
+        run: |
+          actual_dev="$(echo "$CONFIG" | jq -r '.dev.concurrencyGroup')"
+          actual_prod="$(echo "$CONFIG" | jq -r '.prod.concurrencyGroup')"
+          [ "$actual_dev" = "test-dev" ] || { echo "::error::Expected dev concurrencyGroup 'test-dev', got '$actual_dev'"; exit 1; }
+          [ "$actual_prod" = "test-prod" ] || { echo "::error::Expected prod concurrencyGroup 'test-prod', got '$actual_prod'"; exit 1; }
+
+  # Test monorepo concurrency groups
+  test-valid-monorepo:
+    uses: ./.github/workflows/reusable-gp-init.yml
+    with:
+      config-file: tests/fixtures/valid-app-monorepo.json
+      app-name: my-app
+      stack-name: app-my-app
+
+  assert-valid-monorepo:
+    needs: test-valid-monorepo
+    runs-on: ubuntu-24.04
+    env:
+      CONFIG: ${{ needs.test-valid-monorepo.outputs.config }}
+    steps:
+      - name: Assert concurrencyGroup includes app name (monorepo)
+        run: |
+          actual_dev="$(echo "$CONFIG" | jq -r '.dev.concurrencyGroup')"
+          actual_prod="$(echo "$CONFIG" | jq -r '.prod.concurrencyGroup')"
+          [ "$actual_dev" = "test-dev-my-app" ] || { echo "::error::Expected dev concurrencyGroup 'test-dev-my-app', got '$actual_dev'"; exit 1; }
+          [ "$actual_prod" = "test-prod-my-app" ] || { echo "::error::Expected prod concurrencyGroup 'test-prod-my-app', got '$actual_prod'"; exit 1; }
+
+  # Test that validation fails on invalid config (run steps directly since we expect failure)
+  test-invalid-schema:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Should fail on invalid config
+        run: |
+          schema_url="$(jq -r '."$schema"' tests/fixtures/invalid-missing-required.json)"
+          pip install --quiet check-jsonschema==0.37.0
+          if check-jsonschema --schemafile "$schema_url" tests/fixtures/invalid-missing-required.json; then
+            echo "::error::Expected validation to fail on invalid config"
+            exit 1
+          fi
+
+  test-missing-schema:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Should fail when schema is missing
+        run: |
+          schema_url="$(jq -r '."$schema" // empty' tests/fixtures/no-schema.json)"
+          if [ -n "$schema_url" ]; then
+            echo "::error::Expected no schema URL in test fixture"
+            exit 1
+          fi
