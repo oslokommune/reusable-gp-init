@@ -93,7 +93,7 @@ jobs:
         run: |
           # GitHub Actions does not support conditional checks on secrets,
           # so we need to do this check inside the step itself.
-          if [ "$DD_API_KEY" != "" ]; then
+          if [ "$DD_API_KEY" == "" ]; then
             echo "No Datadog API key provided, skipping git metadata upload"
             exit 0
           fi
