@@ -1,10 +1,14 @@
 ################################################################################
 # Reusable workflow: gp-init
 #
-# Preprocesses CI/CD configuration and performs platform-level initialization
-# tasks. Called by the main deployment workflow.
+# Reusable workflow for performing various initialization work as part of a
+# deployment pipeline. Examples of such initialization:
+# - Validating the CI/CD configuration against its JSON Schema
+# - Enriching the configuration with computed values (concurrency groups,
+#   stack directories, app name)
+# - Uploading git metadata to Datadog
 ################################################################################
-name: "gp-init"
+name: "Golden Path initialization"
 
 on:
   workflow_call:
@@ -33,7 +37,7 @@ on:
 
 jobs:
   gp-init:
-    name: Init
+    name: Initialization
     runs-on: ubuntu-24.04
     permissions:
       contents: read
