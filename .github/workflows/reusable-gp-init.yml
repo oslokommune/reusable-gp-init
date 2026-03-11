@@ -1,0 +1,89 @@
+################################################################################
+# Reusable workflow: gp-init
+#
+# Preprocesses CI/CD configuration and performs platform-level initialization
+# tasks. Called by the main deployment workflow.
+################################################################################
+name: "gp-init"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to CI/CD configuration file"
+        type: string
+        default: ".gp.cicd.json"
+        required: false
+      app-name:
+        type: string
+        required: true
+        description: "The name of the application (e.g., `example`)"
+      stack-name:
+        type: string
+        required: false
+        description: "The name of the Terraform stack (e.g., `app-example`, `applications/app-example`)"
+    outputs:
+      config:
+        description: "The processed CI/CD configuration"
+        value: ${{ jobs.gp-init.outputs.config }}
+    secrets:
+      datadog-api-key:
+        required: false
+        description: "Datadog API key for git metadata upload"
+
+jobs:
+  gp-init:
+    name: Init
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      config: ${{ steps.config.outputs.result }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      # TODO: Validate the config using jsonschema
+
+      - name: Store config as output
+        id: config
+        env:
+          APP_NAME: ${{ inputs.app-name }}
+          STACK_NAME: ${{ inputs.stack-name }}
+          CONFIG_FILE: ${{ inputs.config-file }}
+        run: |
+          # We extend the config a bit with other values that can be nice to have
+          # available, especially because GitHub Actions does not support referencing
+          # variables set through `env` in `concurrency` and `environment` blocks.
+          config="$(jq -e -c --arg app "$APP_NAME" --arg stack "$STACK_NAME" '
+            (if $app != "" then .appName = $app else . end) |
+
+            (if $stack != "" then
+              .dev.stackDir = "\(.dev.infrastructureRoot)/\($stack)" |
+              .prod.stackDir = "\(.prod.infrastructureRoot)/\($stack)"
+            else . end) |
+
+            if .monorepo then
+              .dev.concurrencyGroup = "\(.dev.name)-\($app)" |
+              .prod.concurrencyGroup = "\(.prod.name)-\($app)"
+            else
+              .dev.concurrencyGroup = .dev.name |
+              .prod.concurrencyGroup = .prod.name
+            end
+          ' "$CONFIG_FILE")"
+          echo "  $config"
+          echo "result=$config" >> "$GITHUB_OUTPUT"
+
+      - name: Upload git metadata
+        env:
+          DD_API_KEY: ${{ secrets.datadog-api-key }}
+          DD_SITE: "datadoghq.eu"
+        run: |
+          # GitHub does not currently support doing something like `if: ${{ secrets.datadog-api-key != '' }`,
+          # so we need to do this check inside the step itself..
+          if [ "$DD_API_KEY" != "" ]; then
+            echo "No Datadog API key provided, skipping git metadata upload"
+            exit 0
+          fi
+          DATADOG_CI_VERSION="v5.5.0"
+          npx "@datadog/datadog-ci@$DATADOG_CI_VERSION" git-metadata upload
