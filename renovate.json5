@@ -8,7 +8,7 @@
       "customType": "regex",
       "fileMatch": "^\\.github/workflows/.*\\.yml$",
       "matchStrings": [
-        "#\\s*renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( extractVersion=(?<extractVersion>.*?))?\\n.*_VERSION: (?<currentValue>.*)"
+        "#\\s*renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( extractVersion=(?<extractVersion>.*?))?\\n.*_VERSION=\"(?<currentValue>.*)\""
       ]
     }
   ]
