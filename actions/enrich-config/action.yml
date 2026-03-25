@@ -32,6 +32,6 @@ runs:
         STACK_NAME: ${{ inputs.stack-name }}
         CONFIG_FILE: ${{ inputs.config-file }}
       run: |
-        config="$(uv run "${{ github.action_path }}/../../scripts/enrich_config.py")"
+        config="$(uv run "${{ github.action_path }}/enrich_config.py")"
         echo "  $config"
         echo "result=$config" >> "$GITHUB_OUTPUT"
