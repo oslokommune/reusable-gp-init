@@ -61,9 +61,9 @@ jobs:
           pip install --quiet "check-jsonschema==$CHECK_JSONSCHEMA_VERSION"
           check-jsonschema --schemafile "$schema_url" "$CONFIG_FILE"
 
-      - name: Enrich config
+      - name: Build config and store it as output
         id: config
-        uses: oslokommune/composite-actions/enrich-gp-config@add-enrich-config
+        uses: oslokommune/composite-actions/build-gp-config@add-build-gp-config
         with:
           config-file: ${{ inputs.config-file }}
           app-name: ${{ inputs.app-name }}
