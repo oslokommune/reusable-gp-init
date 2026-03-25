@@ -71,24 +71,7 @@ jobs:
           # We extend the config a bit with other values that can be nice to have
           # available, especially because GitHub Actions does not support referencing
           # variables set through `env` in `concurrency` and `environment` blocks.
-          config="$(jq --exit-status --compact-output --arg app "$APP_NAME" --arg stack "$STACK_NAME" '
-            (if $app != "" then .appName = $app else . end) |
-
-            (if $stack != "" then
-              (if .dev then .dev.stackDir = "\(.dev.infrastructureRoot)/\($stack)" else . end) |
-              (if .prod then .prod.stackDir = "\(.prod.infrastructureRoot)/\($stack)" else . end)
-            else . end) |
-
-            (if .dev then
-              if .monorepo then .dev.concurrencyGroup = "\(.dev.name)-\($app)"
-              else .dev.concurrencyGroup = .dev.name end
-            else . end) |
-
-            (if .prod then
-              if .monorepo then .prod.concurrencyGroup = "\(.prod.name)-\($app)"
-              else .prod.concurrencyGroup = .prod.name end
-            else . end)
-          ' "$CONFIG_FILE")"
+          config="$(uv run scripts/enrich_config.py)"
           echo "  $config"
           echo "result=$config" >> "$GITHUB_OUTPUT"
 
