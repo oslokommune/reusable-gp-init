@@ -22,4 +22,4 @@ jobs:
           CONFIG: ${{ needs.e2e-test.outputs.config }}
         run: |
           echo "$CONFIG" | jq .
-          echo "$CONFIG" | jq -e '.appName == "pirates"'
+          echo "$CONFIG" | jq -e '.appName == "too-tikki"'
