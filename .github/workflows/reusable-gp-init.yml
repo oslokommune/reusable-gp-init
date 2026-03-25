@@ -63,7 +63,7 @@ jobs:
 
       - name: Enrich config
         id: config
-        uses: oslokommune/reusable-gp-init/actions/enrich-config@main
+        uses: oslokommune/reusable-gp-init/actions/enrich-config@support-null-prod
         with:
           config-file: ${{ inputs.config-file }}
           app-name: ${{ inputs.app-name }}
