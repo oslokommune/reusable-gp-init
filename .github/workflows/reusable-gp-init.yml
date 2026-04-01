@@ -82,4 +82,4 @@ jobs:
           fi
           # renovate: datasource=npm depName=@datadog/datadog-ci
           DATADOG_CI_VERSION="5.5.0"
-          npx "@datadog/datadog-ci@$DATADOG_CI_VERSION" git-metadata upload
+          npx --ignore-scripts "@datadog/datadog-ci@$DATADOG_CI_VERSION" git-metadata upload
