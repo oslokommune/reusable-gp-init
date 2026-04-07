@@ -102,5 +102,5 @@ jobs:
             exit 0
           fi
           # renovate: datasource=npm depName=@datadog/datadog-ci
-          DATADOG_CI_VERSION="5.5.0"
+          DATADOG_CI_VERSION="5.11.0"
           npx "@datadog/datadog-ci@$DATADOG_CI_VERSION" git-metadata upload
