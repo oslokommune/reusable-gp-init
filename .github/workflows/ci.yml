@@ -1,0 +1,25 @@
+name: "CI"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e-test:
+    uses: ./.github/workflows/reusable-gp-init.yml
+    with:
+      app-name: "too-tikki"
+      config-file: "testdata/.gp.cicd.json"
+      stack-name: "app-too-tikki"
+
+  verify:
+    needs: e2e-test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify config output
+        env:
+          CONFIG: ${{ needs.e2e-test.outputs.config }}
+        run: |
+          echo "$CONFIG" | jq .
+          echo "$CONFIG" | jq -e '.appName == "too-tikki"'

@@ -42,53 +42,18 @@ jobs:
     permissions:
       contents: read
     outputs:
-      config: ${{ steps.config.outputs.result }}
+      config: ${{ steps.config.outputs.config }}
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Validate config against schema
-        env:
-          CONFIG_FILE: ${{ inputs.config-file }}
-        run: |
-          schema_url="$(jq -r '."$schema" // empty' "$CONFIG_FILE")"
-          if [ "$schema_url" == "" ]; then
-          echo "::error::Config file $CONFIG_FILE is not using any schema."
-            exit 1
-          fi
-          # renovate: datasource=pypi depName=check-jsonschema
-          CHECK_JSONSCHEMA_VERSION="0.37.0"
-          pip install --quiet "check-jsonschema==$CHECK_JSONSCHEMA_VERSION"
-          check-jsonschema --schemafile "$schema_url" "$CONFIG_FILE"
-
-      - name: Store config as output
+      - name: Build config and store it as output
         id: config
-        env:
-          APP_NAME: ${{ inputs.app-name }}
-          STACK_NAME: ${{ inputs.stack-name }}
-          CONFIG_FILE: ${{ inputs.config-file }}
-        run: |
-          # We extend the config a bit with other values that can be nice to have
-          # available, especially because GitHub Actions does not support referencing
-          # variables set through `env` in `concurrency` and `environment` blocks.
-          config="$(jq -e -c --arg app "$APP_NAME" --arg stack "$STACK_NAME" '
-            (if $app != "" then .appName = $app else . end) |
-
-            (if $stack != "" then
-              .dev.stackDir = "\(.dev.infrastructureRoot)/\($stack)" |
-              .prod.stackDir = "\(.prod.infrastructureRoot)/\($stack)"
-            else . end) |
-
-            if .monorepo then
-              .dev.concurrencyGroup = "\(.dev.name)-\($app)" |
-              .prod.concurrencyGroup = "\(.prod.name)-\($app)"
-            else
-              .dev.concurrencyGroup = .dev.name |
-              .prod.concurrencyGroup = .prod.name
-            end
-          ' "$CONFIG_FILE")"
-          echo "  $config"
-          echo "result=$config" >> "$GITHUB_OUTPUT"
+        uses: oslokommune/composite-actions/build-gp-config@add-build-gp-config
+        with:
+          config-file: ${{ inputs.config-file }}
+          app-name: ${{ inputs.app-name }}
+          stack-name: ${{ inputs.stack-name }}
 
       - name: Upload git metadata
         env:
