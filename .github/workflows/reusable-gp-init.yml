@@ -47,20 +47,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Validate config against schema
-        env:
-          CONFIG_FILE: ${{ inputs.config-file }}
-        run: |
-          schema_url="$(jq -r '."$schema" // empty' "$CONFIG_FILE")"
-          if [ "$schema_url" == "" ]; then
-          echo "::error::Config file $CONFIG_FILE is not using any schema."
-            exit 1
-          fi
-          # renovate: datasource=pypi depName=check-jsonschema
-          CHECK_JSONSCHEMA_VERSION="0.37.0"
-          pip install --quiet "check-jsonschema==$CHECK_JSONSCHEMA_VERSION"
-          check-jsonschema --schemafile "$schema_url" "$CONFIG_FILE"
-
       - name: Build config and store it as output
         id: config
         uses: oslokommune/composite-actions/build-gp-config@add-build-gp-config
