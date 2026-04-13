@@ -49,7 +49,7 @@ jobs:
 
       - name: Build config and store it as output
         id: config
-        uses: oslokommune/composite-actions/build-gp-config@add-build-gp-config
+        uses: oslokommune/composite-actions/build-gp-config@7c98b0778ffd46ee658bff6d25408517a030e2bf # v1.7.0
         with:
           config-file: ${{ inputs.config-file }}
           app-name: ${{ inputs.app-name }}
