@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3](https://github.com/oslokommune/reusable-gp-init/compare/v0.0.2...v0.0.3) (2026-04-13)
+
+
+### Bug Fixes
+
+* support configs with only dev or prod ([#6](https://github.com/oslokommune/reusable-gp-init/issues/6)) ([c610089](https://github.com/oslokommune/reusable-gp-init/commit/c6100892362530002ca990f5c5f44358dbf9f1b7))
+
 ## [0.0.2](https://github.com/oslokommune/reusable-gp-init/compare/v0.0.1...v0.0.2) (2026-03-11)
 
 
