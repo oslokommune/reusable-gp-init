@@ -1,7 +1,16 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>oslokommune/golden-path-renovate:default.json5"
+    "github>oslokommune/golden-path-renovate:default.json5",
+    "github>oslokommune/golden-path-renovate:golden-path-v2.json5"
+  ],
+  "packageRules": [
+    // Use deps prefix so dependency updates are included in changelogs
+    {
+      "matchPackageNames": ["*"],
+      "semanticCommitType": "deps",
+      "semanticCommitScope": null
+    }
   ],
   "customManagers": [
     {
