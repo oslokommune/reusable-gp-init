@@ -30,6 +30,9 @@ on:
       config:
         description: "The processed CI/CD configuration"
         value: ${{ jobs.gp-init.outputs.config }}
+      is_dependency_update_branch:
+        description: "Whether the current branch was created by a dependency update bot (Renovate, Dependabot)"
+        value: ${{ jobs.gp-init.outputs.is_dependency_update_branch }}
     secrets:
       datadog-api-key:
         required: false
@@ -43,9 +46,23 @@ jobs:
       contents: read
     outputs:
       config: ${{ steps.config.outputs.config }}
+      is_dependency_update_branch: ${{ steps.dependency-update-branch.outputs.result }}
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Detect dependency update branch
+        id: dependency-update-branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          REF: ${{ github.ref }}
+        run: |
+          branch="${HEAD_REF:-${REF#refs/heads/}}"
+          if [[ "$branch" == renovate/* || "$branch" == dependabot/* ]]; then
+            echo "result=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build config and store it as output
         id: config
