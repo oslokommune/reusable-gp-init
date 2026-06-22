@@ -58,7 +58,7 @@ jobs:
           REF: ${{ github.ref }}
         run: |
           branch="${HEAD_REF:-${REF#refs/heads/}}"
-          if [[ "$branch" == renovate/* || "$branch" == dependabot/* ]]; then
+          if [[ "$branch" == ok-renovate/* || "$branch" == renovate/* || "$branch" == dependabot/* ]]; then
             echo "result=true" >> "$GITHUB_OUTPUT"
           else
             echo "result=false" >> "$GITHUB_OUTPUT"
