@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.0](https://github.com/oslokommune/reusable-gp-init/compare/v0.0.3...v0.1.0) (2026-08-07)
+
+
+### Features
+
+* add is_dependency_update_branch output ([fa310fb](https://github.com/oslokommune/reusable-gp-init/commit/fa310fb826037fd10fb12dc0cccd3f53dbf04841))
+* add is_dependency_update_branch output ([7865bb7](https://github.com/oslokommune/reusable-gp-init/commit/7865bb70eef7cc173110a0f153da790aec0301fa)), closes [#11](https://github.com/oslokommune/reusable-gp-init/issues/11)
+
+
+### Bug Fixes
+
+* include ok-renovate/ branch prefix in detection ([d8a375a](https://github.com/oslokommune/reusable-gp-init/commit/d8a375ab7541fc4ee46896a51f7f9f66b16138d8))
+
 ## [0.0.3](https://github.com/oslokommune/reusable-gp-init/compare/v0.0.2...v0.0.3) (2026-04-13)
 
 
